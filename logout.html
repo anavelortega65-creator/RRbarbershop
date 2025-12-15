@@ -115,17 +115,18 @@ button {
 const SUPABASE_URL = "https://mvmcdztdhvgkkjbcrqfk.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im12bWNkenRkaHZna2tqYmNycWZrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU3NzMxMzIsImV4cCI6MjA4MTM0OTEzMn0.iJbj-BMR1OSNjX-QkbNIy6BlfYDvfc8IjIjTS66ukCs";
 
-const LOGIN_PAGE = "https://your-login-page-url.html";
-const HOME_PAGE  = "https://sites.google.com/view/rrsalonbarbershop/home";
+// DESTINATIONS
+const YES_REDIRECT    = "https://sites.google.com/view/rrbarbershop/home";
+const CANCEL_REDIRECT = "https://sites.google.com/view/rrsalonbarbershop/home";
 
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// CANCEL → HOME
+// CANCEL → RR SALON HOME
 function cancelLogout(){
-  window.top.location.href = HOME_PAGE;
+  window.top.location.href = CANCEL_REDIRECT;
 }
 
-// LOGOUT → LOGIN
+// YES → LOGOUT → RR BARBERSHOP HOME
 async function confirmLogout(){
 
   document.getElementById("confirmBox").classList.add("hidden");
@@ -140,7 +141,7 @@ async function confirmLogout(){
   document.getElementById("message").innerText = "Successfully logged out";
 
   setTimeout(() => {
-    window.top.location.href = LOGIN_PAGE;
+    window.top.location.href = YES_REDIRECT;
   }, 800);
 }
 </script>
