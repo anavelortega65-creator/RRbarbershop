@@ -27,6 +27,12 @@ body {
   max-width:420px;
   text-align:center;
   box-shadow:0 20px 60px rgba(0,0,0,.45);
+  animation: fadeIn .4s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity:0; transform:translateY(20px); }
+  to { opacity:1; transform:translateY(0); }
 }
 
 h2 {
@@ -111,11 +117,10 @@ button {
 </div>
 
 <script>
-// ===== SUPABASE =====
+// ===== SUPABASE SETUP =====
 const SUPABASE_URL = "https://mvmcdztdhvgkkjbcrqfk.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im12bWNkenRkaHZna2tqYmNycWZrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU3NzMxMzIsImV4cCI6MjA4MTM0OTEzMn0.iJbj-BMR1OSNjX-QkbNIy6BlfYDvfc8IjIjTS66ukCs";
 
-// DESTINATIONS
 const YES_REDIRECT    = "https://sites.google.com/view/rrbarbershop/home";
 const CANCEL_REDIRECT = "https://sites.google.com/view/rrsalonbarbershop/home";
 
@@ -123,7 +128,7 @@ const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // CANCEL → RR SALON HOME
 function cancelLogout(){
-  window.top.location.href = CANCEL_REDIRECT;
+  window.location.replace(CANCEL_REDIRECT);
 }
 
 // YES → LOGOUT → RR BARBERSHOP HOME
@@ -140,9 +145,10 @@ async function confirmLogout(){
 
   document.getElementById("message").innerText = "Successfully logged out";
 
+  // ✅ Google Sites safe redirect
   setTimeout(() => {
-    window.top.location.href = YES_REDIRECT;
-  }, 800);
+    window.location.replace(YES_REDIRECT);
+  }, 600);
 }
 </script>
 
