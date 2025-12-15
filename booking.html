@@ -3,57 +3,98 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Booking Page</title>
+<title>RR Barbershop - Login / Register / Booking</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
 <style>
 * { box-sizing: border-box; }
 body {
-  font-family: Arial, sans-serif;
-  background: linear-gradient(135deg, #b49346, #443103);
-  padding: 50px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(135deg, #7f1d1d, #4c0519);
+  min-height: 100vh;
   display: flex;
   justify-content: center;
-  align-items: flex-start;
-  min-height: 100vh;
+  align-items: center;
+  padding: 20px;
 }
-.container {
-  width: 400px;
-  background: #1a1a1a;
-  padding: 30px;
-  border-radius: 12px;
-  box-shadow: 0 0 20px rgba(0,0,0,0.5);
-  color: #fff;
-}
-h1 { text-align: center; margin-bottom: 20px; }
-input, select, button {
+.box {
+  max-width: 420px;
   width: 100%;
-  padding: 10px;
-  margin: 6px 0;
-  border-radius: 6px;
-  border: none;
+  padding: 40px;
+  border-radius: 16px;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.45);
+  background: rgba(255,255,255,0.95);
 }
-input, select { background: #b49346; color: #fff; }
+input {
+  width: 100%;
+  padding: 14px 16px;
+  margin: 12px 0;
+  border-radius: 10px;
+  border: 2px solid #e5e7eb;
+  font-size: 15px;
+}
+input:focus {
+  outline: none;
+  border-color: #7f1d1d;
+  box-shadow: 0 0 0 3px rgba(127,29,29,.25);
+}
 button {
-  background: #443103;
-  color: #fff;
-  font-weight: bold;
+  width: 100%;
+  padding: 14px;
+  margin-top: 8px;
+  border: none;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: 700;
+  color: white;
   cursor: pointer;
-  transition: 0.3s;
+  background: linear-gradient(135deg, #991b1b, #7f1d1d);
 }
-button:hover { background: #66501a; }
-.message { margin-top: 10px; padding: 10px; border-radius: 6px; display: none; text-align: center; }
-.message.success { background: #22c55e; }
-.message.error { background: #ef4444; }
-.receipt { background: #222; padding: 20px; border-radius: 10px; margin-top: 20px; line-height: 1.6; display: none; }
-.receipt h3 { text-align: center; margin-bottom: 10px; color: #22c55e; }
+button:hover { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(127,29,29,.5); }
+.error { margin-top: 10px; padding: 10px; border-radius: 8px; font-size: 13px; display: none; background: #fee2e2; color: #7f1d1d; }
+.success { position: fixed; top: 20px; background: linear-gradient(135deg, #22c55e, #16a34a); color: white; padding: 14px 20px; border-radius: 10px; font-weight: 700; display: none; }
+.link { margin-top: 18px; font-size: 14px; color: #7f1d1d; }
+.link a { cursor: pointer; font-weight: 600; color: #7f1d1d; text-decoration: none; }
+.link a:hover { text-decoration: underline; }
+/* Booking specific styles */
+#bookingBox { display:none; text-align:left; }
+#bookingBox h2 { text-align:center; margin-bottom:20px; }
+#bookingBox .receipt { background:#222; padding:20px; border-radius:10px; margin-top:15px; line-height:1.6; display:none; color:#fff; }
+#bookingBox .receipt h3 { text-align:center; color:#22c55e; margin-bottom:10px; }
+#logoutBtn { width: 100%; margin-top:10px; background:#e74c3c; color:#fff; padding:12px; border-radius:8px; cursor:pointer; }
+#logoutBtn:hover { background:#c0392b; }
 </style>
 </head>
 <body>
 
-<div class="container">
-  <h1>Book an Appointment</h1>
+<div id="successMessage" class="success"></div>
 
+<!-- LOGIN BOX -->
+<div id="loginBox" class="box">
+  <h2>Login</h2>
+  <input id="loginUser" type="email" placeholder="Email">
+  <input id="loginPass" type="password" placeholder="Password">
+  <button onclick="login()">Login</button>
+  <p id="loginError" class="error"></p>
+  <p class="link">No account? <a onclick="showRegister()">Register</a></p>
+</div>
+
+<!-- REGISTER BOX -->
+<div id="registerBox" class="box">
+  <h2>Create Account</h2>
+  <input id="newFullname" type="text" placeholder="Full Name">
+  <input id="newPhone" type="tel" placeholder="Phone Number">
+  <input id="newUser" type="email" placeholder="Email">
+  <input id="newPass" type="password" placeholder="Password">
+  <button onclick="register()">Register</button>
+  <p id="registerError" class="error"></p>
+  <p class="link">Already have an account? <a onclick="showLogin()">Login</a></p>
+</div>
+
+<!-- BOOKING BOX -->
+<div id="bookingBox" class="box">
+  <h2>Book an Appointment</h2>
+  <button id="logoutBtn">Logout</button>
   <form id="bookingForm">
     <input type="text" id="name" placeholder="Full Name" required>
     <input type="email" id="email" placeholder="Email" required>
@@ -69,9 +110,9 @@ button:hover { background: #66501a; }
     <button type="submit">Book Now</button>
   </form>
 
-  <div id="message" class="message"></div>
+  <div id="message" class="error"></div>
 
-  <div id="receipt" class="receipt">
+  <div class="receipt" id="receipt">
     <h3>Booking Receipt</h3>
     <p><strong>Name:</strong> <span id="rName"></span></p>
     <p><strong>Email:</strong> <span id="rEmail"></span></p>
@@ -84,81 +125,78 @@ button:hover { background: #66501a; }
 
 <script>
 const SUPABASE_URL = "https://mvmcdztdhvgkkjbcrqfk.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im12bWNkenRkaHZna2tqYmNycWZrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU3NzMxMzIsImV4cCI6MjA4MTM0OTEzMn0.iJbj-BMR1OSNjX-QkbNIy6BlfYDvfc8IjIjTS66ukCs";
+const SUPABASE_ANON_KEY = "YOUR_ANON_KEY"; // replace with your anon key
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const HOME_PAGE = "https://sites.google.com/view/rrbarbershop/home";
 
-let currentUser = null;
-const form = document.getElementById("bookingForm");
-const messageEl = document.getElementById("message");
-const receiptEl = document.getElementById("receipt");
+function showRegister(){ loginBox.style.display="none"; registerBox.style.display="block"; }
+function showLogin(){ registerBox.style.display="none"; loginBox.style.display="block"; }
+function showBooking(){ loginBox.style.display="none"; registerBox.style.display="none"; bookingBox.style.display="block"; }
+function showSuccess(msg){ successMessage.innerText=msg; successMessage.style.display="block"; setTimeout(()=> successMessage.style.display="none",2500); }
 
-async function initUser() {
-  const { data, error } = await supabase.auth.getUser();
-  if(error || !data.user){
-    messageEl.textContent = "You must log in first!";
-    messageEl.className = "message error";
-    messageEl.style.display = "block";
-    form.querySelector("button").disabled = true;
-    return;
-  }
-  currentUser = data.user;
-  // Pre-fill email from auth
+// ===== AUTH FUNCTIONS =====
+async function register(){
+  const fullname = newFullname.value.trim();
+  const phone = newPhone.value.trim();
+  const email = newUser.value.trim();
+  const password = newPass.value;
+  if(!fullname||!phone||!email||!password){ registerError.innerText="All fields are required"; return; }
+
+  const { data, error } = await supabaseClient.auth.signUp({ email, password, options:{data:{fullname, phone}}});
+  if(error){ registerError.innerText = error.message; return; }
+  if(data.user){ await supabaseClient.from("profiles").insert({id:data.user.id, fullname, phone, email}); }
+  registerError.innerText=""; showSuccess("Account created!"); showLogin();
+}
+
+async function login(){
+  const email = loginUser.value.trim();
+  const password = loginPass.value;
+  const { error, data } = await supabaseClient.auth.signInWithPassword({ email, password });
+  if(error){ loginError.innerText = error.message; return; }
+  loginError.innerText=""; showSuccess("Login successful!"); setTimeout(()=>{ showBooking(); initBooking(); },1200);
+}
+
+// ===== BOOKING FUNCTIONS =====
+let currentUser=null;
+async function initBooking(){
+  const { data } = await supabaseClient.auth.getUser();
+  if(!data.user){ alert("Please login"); return; }
+  currentUser=data.user;
   document.getElementById("email").value = currentUser.email;
 }
 
-initUser();
-
-form.addEventListener("submit", async function(e){
+bookingForm.addEventListener("submit", async function(e){
   e.preventDefault();
   if(!currentUser) return;
-
   const name = document.getElementById("name").value.trim();
   const email = document.getElementById("email").value.trim();
   const service = document.getElementById("service").value;
   const date = document.getElementById("date").value;
   const time = document.getElementById("time").value;
+  if(!name||!email||!service||!date||!time){ showMessage("All fields are required!","error"); return; }
 
-  if(!name || !email || !service || !date || !time){
-    showMessage("All fields are required!", "error");
-    return;
-  }
-
-  try {
-    const { data, error } = await supabase.from("bookings").insert([{
-      user_id: currentUser.id,
-      name, email, service, date, time
-    }]).select();
-
+  try{
+    const { data, error } = await supabaseClient.from("bookings").insert([{ user_id:currentUser.id, name, email, service, date, time }]).select();
     if(error) throw error;
-
-    const booking = data[0];
-    showMessage("Booking Done!", "success");
-    form.reset();
-    document.getElementById("name").value = name;
-    document.getElementById("email").value = email;
-
+    const booking=data[0];
+    showMessage("Booking Done!","success");
+    bookingForm.reset(); document.getElementById("name").value=name; document.getElementById("email").value=email;
     // Show receipt
-    document.getElementById("rName").textContent = booking.name;
-    document.getElementById("rEmail").textContent = booking.email;
-    document.getElementById("rService").textContent = booking.service;
-    document.getElementById("rDate").textContent = booking.date;
-    document.getElementById("rTime").textContent = booking.time;
-    document.getElementById("rId").textContent = booking.id;
-    receiptEl.style.display = "block";
-
-  } catch(err) {
-    console.error(err);
-    showMessage("Failed to submit. Try again.", "error");
-  }
+    rName.textContent=booking.name; rEmail.textContent=booking.email; rService.textContent=booking.service;
+    rDate.textContent=booking.date; rTime.textContent=booking.time; rId.textContent=booking.id;
+    receipt.style.display="block";
+  }catch(err){ console.error(err); showMessage("Failed to submit","error"); }
 });
 
-function showMessage(msg, type){
-  messageEl.textContent = msg;
-  messageEl.className = "message " + type;
-  messageEl.style.display = "block";
-  setTimeout(()=> messageEl.style.display="none", 4000);
-}
+function showMessage(msg,type){ message.textContent=msg; message.className="message "+type; message.style.display="block"; setTimeout(()=> message.style.display="none",4000); }
+
+// ===== LOGOUT =====
+logoutBtn.addEventListener("click", async function(){
+  const { error } = await supabaseClient.auth.signOut();
+  if(error){ alert("Logout failed: "+error.message); return; }
+  window.location.href = HOME_PAGE;
+});
 </script>
 
 </body>
