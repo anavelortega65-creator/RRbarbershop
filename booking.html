@@ -74,11 +74,6 @@ button:hover {
   background: #66501a;
 }
 
-button:disabled {
-  background: #888;
-  cursor: not-allowed;
-}
-
 .message {
   margin-top: 15px;
   text-align: center;
@@ -97,6 +92,20 @@ button:disabled {
 .message.error {
   background: #ef4444;
   color: white;
+}
+
+.receipt {
+  background: #222;
+  padding: 20px;
+  border-radius: 10px;
+  margin-top: 20px;
+  line-height: 1.6;
+}
+
+.receipt h3 {
+  text-align: center;
+  margin-bottom: 10px;
+  color: #22c55e;
 }
 </style>
 </head>
@@ -133,6 +142,17 @@ button:disabled {
 
     <p id="message" class="message"></p>
   </form>
+
+  <!-- Receipt container -->
+  <div id="receipt" class="receipt" style="display:none;">
+    <h3>Booking Receipt</h3>
+    <p><strong>Name:</strong> <span id="rName"></span></p>
+    <p><strong>Email:</strong> <span id="rEmail"></span></p>
+    <p><strong>Service:</strong> <span id="rService"></span></p>
+    <p><strong>Date:</strong> <span id="rDate"></span></p>
+    <p><strong>Time:</strong> <span id="rTime"></span></p>
+    <p><strong>Booking ID:</strong> <span id="rId"></span></p>
+  </div>
 </div>
 
 <script>
@@ -143,10 +163,10 @@ const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 const form = document.getElementById("contactForm");
 const messageEl = document.getElementById("message");
-
+const receiptEl = document.getElementById("receipt");
 let currentUser = null;
 
-// Get logged-in user
+// Pre-fill logged-in user info
 supabase.auth.getUser().then(async ({ data }) => {
   if (!data.user) {
     showMessage("You must be logged in to book.", "error");
@@ -155,7 +175,6 @@ supabase.auth.getUser().then(async ({ data }) => {
   }
   currentUser = data.user;
 
-  // Pre-fill name/email from profile
   try {
     const { data: profileData } = await supabase
       .from("profiles")
@@ -177,40 +196,52 @@ supabase.auth.getUser().then(async ({ data }) => {
 
 form.addEventListener("submit", async function(e){
   e.preventDefault();
-
   if (!currentUser) return;
 
   const name = document.getElementById("name").value.trim();
   const email = document.getElementById("email").value.trim();
-  const subject = document.getElementById("subject").value;
+  const service = document.getElementById("subject").value;
   const date = document.getElementById("date").value;
   const time = document.getElementById("time").value;
 
-  if(!name || !email || !subject || !date || !time){
+  if(!name || !email || !service || !date || !time){
     showMessage("All fields are required!", "error");
     return;
   }
 
   try {
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from("bookings")
       .insert([{
         user_id: currentUser.id,
         name,
         email,
-        service: subject,
+        service,
         date,
         time
-      }]);
+      }])
+      .select(); // return inserted row
 
     if(error) throw error;
+
+    const booking = data[0];
 
     showMessage("Booking Done!", "success");
     form.reset();
 
-    // Refill name/email after reset
+    // Refill name/email
     document.getElementById("name").value = name;
     document.getElementById("email").value = email;
+
+    // Show receipt
+    document.getElementById("rName").textContent = booking.name;
+    document.getElementById("rEmail").textContent = booking.email;
+    document.getElementById("rService").textContent = booking.service;
+    document.getElementById("rDate").textContent = booking.date;
+    document.getElementById("rTime").textContent = booking.time;
+    document.getElementById("rId").textContent = booking.id;
+
+    receiptEl.style.display = "block";
 
   } catch(err) {
     console.error(err);
