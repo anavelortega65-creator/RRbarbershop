@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Logout</title>
+<title>Logout - RR Barbershop</title>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
@@ -12,7 +12,7 @@
 
 body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background: linear-gradient(135deg, #7f1d1d, #4c0519);
+  background: linear-gradient(135deg, #b49346, #443103);
   display:flex;
   justify-content:center;
   align-items:center;
@@ -20,24 +20,25 @@ body {
 }
 
 .box {
-  background:white;
+  background:#1c1c1c;
   padding:40px;
   border-radius:16px;
   width:100%;
   max-width:420px;
   text-align:center;
-  box-shadow:0 20px 60px rgba(0,0,0,.45);
+  box-shadow:0 20px 60px rgba(0,0,0,.3);
+  color: #f5f5f5;
 }
 
 h2 {
-  color:#7f1d1d;
+  color:#f5d27a;
   margin-bottom:20px;
   font-size:28px;
   font-weight:700;
 }
 
 p {
-  color:#555;
+  color:#f5f5f5;
   font-size:15px;
 }
 
@@ -55,16 +56,26 @@ button {
   font-size:15px;
   font-weight:700;
   cursor:pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
 }
 
 .logout-btn {
-  background:linear-gradient(135deg,#991b1b,#7f1d1d);
-  color:white;
+  background: linear-gradient(135deg, #f5d27a, #b49346);
+  color:#1c1c1c;
+}
+
+.logout-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(180,147,70,.5);
 }
 
 .cancel-btn {
-  background:#e5e7eb;
-  color:#333;
+  background:#443103;
+  color:#f5d27a;
+}
+
+.cancel-btn:hover {
+  background:#665533;
 }
 
 .hidden { display:none; }
@@ -112,13 +123,10 @@ function cancelLogout(){
 }
 
 async function confirmLogout(){
-
   document.getElementById("confirmBox").classList.add("hidden");
   document.getElementById("processingBox").classList.remove("hidden");
 
-  try {
-    await supabaseClient.auth.signOut();
-  } catch(e){}
+  try { await supabaseClient.auth.signOut(); } catch(e){}
 
   try { localStorage.clear(); } catch(e){}
 
