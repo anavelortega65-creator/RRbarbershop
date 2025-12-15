@@ -3,148 +3,75 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Book an Appointment</title>
-
+<title>Booking Page</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
 * { box-sizing: border-box; }
-
 body {
+  font-family: Arial, sans-serif;
   background: linear-gradient(135deg, #b49346, #443103);
   padding: 50px;
   display: flex;
   justify-content: center;
   align-items: flex-start;
   min-height: 100vh;
-  font-family: Arial, sans-serif;
 }
-
-.contact-container {
-  width: 380px;
+.container {
+  width: 400px;
   background: #1a1a1a;
   padding: 30px;
   border-radius: 12px;
   box-shadow: 0 0 20px rgba(0,0,0,0.5);
   color: #fff;
 }
-
-h1 {
-  margin: 0;
-  font-size: 28px;
-  text-align: center;
-}
-
-.subtitle {
-  font-size: 14px;
-  color: #f5f5f5;
-  margin-bottom: 25px;
-  text-align: center;
-}
-
-input, select {
+h1 { text-align: center; margin-bottom: 20px; }
+input, select, button {
   width: 100%;
   padding: 10px;
-  margin-top: 6px;
-  background: #b49346;
-  border: none;
-  color: white;
+  margin: 6px 0;
   border-radius: 6px;
-}
-
-input:focus, select:focus {
-  outline: 2px solid #fff5c2;
-}
-
-button {
-  margin-top: 25px;
-  width: 100%;
-  padding: 12px;
-  background: #443103;
   border: none;
-  color: white;
+}
+input, select { background: #b49346; color: #fff; }
+button {
+  background: #443103;
+  color: #fff;
   font-weight: bold;
   cursor: pointer;
-  border-radius: 6px;
-  letter-spacing: 1px;
-  transition: all 0.3s ease;
+  transition: 0.3s;
 }
-
-button:hover {
-  background: #66501a;
-}
-
-.message {
-  margin-top: 15px;
-  text-align: center;
-  font-weight: bold;
-  padding: 10px;
-  border-radius: 8px;
-  display: none;
-  font-size: 16px;
-}
-
-.message.success {
-  background: #22c55e;
-  color: white;
-}
-
-.message.error {
-  background: #ef4444;
-  color: white;
-}
-
-.receipt {
-  background: #222;
-  padding: 20px;
-  border-radius: 10px;
-  margin-top: 20px;
-  line-height: 1.6;
-}
-
-.receipt h3 {
-  text-align: center;
-  margin-bottom: 10px;
-  color: #22c55e;
-}
+button:hover { background: #66501a; }
+.message { margin-top: 10px; padding: 10px; border-radius: 6px; display: none; text-align: center; }
+.message.success { background: #22c55e; }
+.message.error { background: #ef4444; }
+.receipt { background: #222; padding: 20px; border-radius: 10px; margin-top: 20px; line-height: 1.6; display: none; }
+.receipt h3 { text-align: center; margin-bottom: 10px; color: #22c55e; }
 </style>
 </head>
-
 <body>
 
-<div class="contact-container">
+<div class="container">
   <h1>Book an Appointment</h1>
-  <p class="subtitle">Let us know how to reach you</p>
 
-  <form id="contactForm">
-    <label>NAME</label>
-    <input type="text" id="name" required>
-
-    <label>EMAIL</label>
-    <input type="email" id="email" required>
-
-    <label>SERVICES</label>
-    <select id="subject" required>
+  <form id="bookingForm">
+    <input type="text" id="name" placeholder="Full Name" required>
+    <input type="email" id="email" placeholder="Email" required>
+    <select id="service" required>
       <option value="" disabled selected>Select a Service</option>
       <option value="Haircut">Haircut</option>
       <option value="Beard Trim">Beard Trim</option>
       <option value="Shave">Shave</option>
       <option value="Hair Coloring">Hair Coloring</option>
     </select>
-
-    <label>DATE</label>
     <input type="date" id="date" required>
-
-    <label>TIME</label>
     <input type="time" id="time" required>
-
-    <button type="submit">BOOK NOW</button>
-
-    <p id="message" class="message"></p>
+    <button type="submit">Book Now</button>
   </form>
 
-  <!-- Receipt container -->
-  <div id="receipt" class="receipt" style="display:none;">
+  <div id="message" class="message"></div>
+
+  <div id="receipt" class="receipt">
     <h3>Booking Receipt</h3>
     <p><strong>Name:</strong> <span id="rName"></span></p>
     <p><strong>Email:</strong> <span id="rEmail"></span></p>
@@ -161,46 +88,34 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 
 const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-const form = document.getElementById("contactForm");
+let currentUser = null;
+const form = document.getElementById("bookingForm");
 const messageEl = document.getElementById("message");
 const receiptEl = document.getElementById("receipt");
-let currentUser = null;
 
-// Pre-fill logged-in user info
-supabase.auth.getUser().then(async ({ data }) => {
-  if (!data.user) {
-    showMessage("You must be logged in to book.", "error");
+async function initUser() {
+  const { data, error } = await supabase.auth.getUser();
+  if(error || !data.user){
+    messageEl.textContent = "You must log in first!";
+    messageEl.className = "message error";
+    messageEl.style.display = "block";
     form.querySelector("button").disabled = true;
     return;
   }
   currentUser = data.user;
+  // Pre-fill email from auth
+  document.getElementById("email").value = currentUser.email;
+}
 
-  try {
-    const { data: profileData } = await supabase
-      .from("profiles")
-      .select("fullname, email")
-      .eq("id", currentUser.id)
-      .single();
-
-    if(profileData){
-      document.getElementById("name").value = profileData.fullname || "";
-      document.getElementById("email").value = profileData.email || currentUser.email || "";
-    } else {
-      document.getElementById("email").value = currentUser.email || "";
-    }
-  } catch(err){
-    console.error(err);
-    document.getElementById("email").value = currentUser.email || "";
-  }
-});
+initUser();
 
 form.addEventListener("submit", async function(e){
   e.preventDefault();
-  if (!currentUser) return;
+  if(!currentUser) return;
 
   const name = document.getElementById("name").value.trim();
   const email = document.getElementById("email").value.trim();
-  const service = document.getElementById("subject").value;
+  const service = document.getElementById("service").value;
   const date = document.getElementById("date").value;
   const time = document.getElementById("time").value;
 
@@ -210,26 +125,16 @@ form.addEventListener("submit", async function(e){
   }
 
   try {
-    const { data, error } = await supabase
-      .from("bookings")
-      .insert([{
-        user_id: currentUser.id,
-        name,
-        email,
-        service,
-        date,
-        time
-      }])
-      .select(); // return inserted row
+    const { data, error } = await supabase.from("bookings").insert([{
+      user_id: currentUser.id,
+      name, email, service, date, time
+    }]).select();
 
     if(error) throw error;
 
     const booking = data[0];
-
     showMessage("Booking Done!", "success");
     form.reset();
-
-    // Refill name/email
     document.getElementById("name").value = name;
     document.getElementById("email").value = email;
 
@@ -240,7 +145,6 @@ form.addEventListener("submit", async function(e){
     document.getElementById("rDate").textContent = booking.date;
     document.getElementById("rTime").textContent = booking.time;
     document.getElementById("rId").textContent = booking.id;
-
     receiptEl.style.display = "block";
 
   } catch(err) {
@@ -251,7 +155,7 @@ form.addEventListener("submit", async function(e){
 
 function showMessage(msg, type){
   messageEl.textContent = msg;
-  messageEl.className = `message ${type}`;
+  messageEl.className = "message " + type;
   messageEl.style.display = "block";
   setTimeout(()=> messageEl.style.display="none", 4000);
 }
